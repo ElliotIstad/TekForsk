@@ -26,14 +26,21 @@ A =  button_a
 b = button_b
 
 class configure_sensor():
-    global config
     
     def __init__(self, gain, IT):
         self.gain = gain
         self.integration = IT
     
     def alter_gain(self):
-        
+        global config
+        config = config & ~(0b11 << 11)
+        config = config | (self.gain << 11)
+
+    def alter_IT(self):
+        global config
+        config = config & ~(0b1111 << 6)
+        config = config | (self.integration << 6)
+
 
 """
 0001100011000000
@@ -54,7 +61,7 @@ steg 1:
     config = config & ~(0b11 << 11)
 steg 2:
     etter det kan jeg bare pushe de flatt med en OR
-    config = config | (0b10 << 11)
+    config = config | (0b01 << 11)
 """
 
 
