@@ -1,6 +1,0 @@
-{
-    // Added by MicroPython & CircuitPython IntelliSense: this project is analysed
-    // against one board's modules, so other Python language servers are off here.
-    "micropython-lsp.enable": true,
-    "python.languageServer": "None"
-}
