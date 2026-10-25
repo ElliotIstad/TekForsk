@@ -3,5 +3,6 @@
     // against one board's modules, so other Python language servers are off here.
     "micropython-lsp.enable": true,
     "python.languageServer": "None",
-    "editor.inlayHints.enabled": "off"
+    "editor.inlayHints.enabled": "off",
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
