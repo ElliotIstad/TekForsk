@@ -1,11 +1,11 @@
 from microbit import *
-from time import sleep
+import time as t
 
 VEML7700 = 0x10
 ALS_CONF = 0x00
 #7 bit slave address = 0x10
 #write address = 0x20
-config = 0b0
+Config = 0b0
 
 ALS_GAIN = {
     "gain1" : 0b00,
@@ -21,56 +21,108 @@ ALS_IT = {
     "IT400" : 0b0010,
     "IT800" : 0b0011
 }
+ALS_GAIN_VALUE = {
+    0b00: 1,
+    0b01: 2,
+    0b10: 0.125,
+    0b11: 0.25
+}
+ALS_IT_MS = {
+    0b1100: 25,
+    0b1000: 50,
+    0b0000: 100,
+    0b0001: 200,
+    0b0010: 400,
+    0b0011: 800
+}
 
-A =  button_a
+A = button_a
 B = button_b
 
-class configure_sensor():
-    def __init__(self, gain, IT):
-        self.gain = gain
-        self.integration = IT
+class ConfigureSensor():
+    def __init__(self, Gain, IT):
+        self.Gain = Gain
+        self.Integration = IT
     
-    def alter_gain(self):
-        global config
-        config = config & ~(0b11 << 11)
-        config = config | (self.gain << 11)
+    def AlterGain(self):
+        global Config
+        Config = Config & ~(0b11 << 11)
+        Config = Config | (self.Gain << 11)
 
-    def alter_IT(self):
-        global config
-        config = config & ~(0b1111 << 6)
-        config = config | (self.integration << 6)
+    def AlterIT(self):
+        global Config
+        Config = Config & ~(0b1111 << 6)
+        Config = Config | (self.Integration << 6)
+
+
+def RawToLux(Reading):
+    # This uses the gain and integration time selected for the sensor.
+    Resolution = (
+        0.0042
+        * (800 / ALS_IT_MS[Sensor.Integration])
+        * (2 / ALS_GAIN_VALUE[Sensor.Gain])
+    )
+    Lux = Resolution * Reading
+    Lux = (((6.0135e-13 * Lux - 9.3924e-9) * Lux + 8.1488e-5) * Lux + 1.0023) * Lux
+    return Lux
+
 
 try:
-    sensor = configure_sensor(
-    ALS_GAIN["gain" + input("pick a gain level. 1, 2, 1/8 or 1/4 : ")],
-    ALS_IT["IT" + input("pick an integration time (in ms). 25, 50, 100, 200, 400 or 800 : ")]
-)
-except Exception as error:
-    print("an error occured:", error)
+    Sensor = ConfigureSensor(
+        ALS_GAIN["gain2"],
+        ALS_IT["IT200"]
+    )
+except Exception as Error:
+    print("an error occured:", Error)
     raise
-sensor.alter_gain()
-sensor.alter_IT()
+Sensor.AlterGain()
+Sensor.AlterIT()
 
+# Send the settings to the sensor over I2C.
 i2c.init()
 i2c.write(
     VEML7700,
     bytes([ALS_CONF,
-    config & 0xFF,
-    (config >> 8) & 0xFF
+        Config & 0xFF,
+        (Config >> 8) & 0xFF
     ]))
 
+# Wait for button A before starting the measurements.
 while not A.is_pressed():
-    sleep(1)
+    t.sleep(1)
 
-with open("data.txt", "a") as file:
-    while not (A.is_pressed() and B.is_pressed()):
-        i2c.write(VEML7700, bytes([0x04]) repeat=True)
-        data = i2c.read(VEML7700,2)
-        readabledataish = data[0] | (data[1] << 8)
-        file.write(str(readabledataish) + "\n")
+with open("data.txt", "a") as DataFile:
+    with open("lux.txt", "a") as LuxFile:
+        with open("time_per_datapoint.txt", "a") as TimeFile:
+            RunStartMS = running_time()
+            PreviousSampleMS = RunStartMS
 
-config = config | 0b1
+            # Keep taking readings until A and B are pressed together.
+            while not (A.is_pressed() and B.is_pressed()):
+                i2c.write(VEML7700, bytes([0x04]), repeat=True)
+                Data = i2c.read(VEML7700, 2)
+                RawReading = Data[0] | (Data[1] << 8)
+                Lux = RawToLux(RawReading)
+                SampleTimeMS = running_time()
+
+                DataFile.write(str(RawReading) + "\n")
+                LuxFile.write("{:.4f}\n".format(Lux))
+                TimeFile.write(
+                    str(SampleTimeMS - PreviousSampleMS) + "\n"
+                )
+                PreviousSampleMS = SampleTimeMS
+
+                # Pause between readings so the sensor can take another measurement.
+                t.sleep_ms(200)
+
+            RuntimeMS = running_time() - RunStartMS
+
+with open("runtime.txt", "a") as RuntimeFile:
+    RuntimeFile.write(str(RuntimeMS) + "\n")
+
+Config = Config | 0b1
 i2c.write(VEML7700, bytes([ALS_CONF,
-config & 0xFF,
-(config >> 8) & 0xFF]))
+    Config & 0xFF,
+    (Config >> 8) & 0xFF]))
 display.show(Image.HEART)
+t.sleep(1)
