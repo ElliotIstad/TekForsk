@@ -26,7 +26,6 @@ A =  button_a
 b = button_b
 
 class configure_sensor():
-    
     def __init__(self, gain, IT):
         self.gain = gain
         self.integration = IT
@@ -49,7 +48,13 @@ try:
 except:
     print("an error occured buddy")
 
-
+i2c.init()
+i2c.write(
+    VEML7700,
+    bytes([ALS_CONF,
+    config & 0xFF,
+    (config >> 8) & 0xFF
+    ]))
 
 sensor.alter_gain()
 sensor.alter_IT()
