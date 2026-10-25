@@ -5,7 +5,7 @@ VEML7700 = 0x10
 ALS_CONF = 0x00
 #7 bit slave address = 0x10
 #write address = 0x20
-config = 0b0000000000000000
+config = 0b0
 
 ALS_GAIN = {
     "gain1" : 0b00,
@@ -41,6 +41,18 @@ class configure_sensor():
         config = config & ~(0b1111 << 6)
         config = config | (self.integration << 6)
 
+try:
+    sensor = configure_sensor(
+    ALS_GAIN["gain" + input("pick a gain level. 1, 2, 1/8 or 1/4 : ")],
+    ALS_IT["IT" + input("pick an integration time (in ms). 25, 50, 100, 200, 400 or 800 : ")]
+)
+except:
+    print("an error occured buddy")
+
+
+
+sensor.alter_gain()
+sensor.alter_IT()
 
 """
 0001100011000000
