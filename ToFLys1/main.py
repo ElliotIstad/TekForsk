@@ -3,8 +3,6 @@ import time as t
 
 VEML7700 = 0x10
 ALS_CONF = 0x00
-#7 bit slave address = 0x10
-#write address = 0x20
 Config = 0b0
 
 ALS_GAIN = {
@@ -56,7 +54,6 @@ class ConfigureSensor():
 
 
 def RawToLux(Reading):
-    # This uses the gain and integration time selected for the sensor.
     Resolution = (
         0.0042
         * (800 / ALS_IT_MS[Sensor.Integration])
@@ -78,7 +75,6 @@ except Exception as Error:
 Sensor.AlterGain()
 Sensor.AlterIT()
 
-# Send the settings to the sensor over I2C.
 i2c.init()
 i2c.write(
     VEML7700,
@@ -87,9 +83,9 @@ i2c.write(
         (Config >> 8) & 0xFF
     ]))
 
-# Wait for button A before starting the measurements.
 while not A.is_pressed():
     t.sleep(1)
+
 
 with open("data.txt", "a") as DataFile:
     with open("lux.txt", "a") as LuxFile:
@@ -97,7 +93,6 @@ with open("data.txt", "a") as DataFile:
             RunStartMS = running_time()
             PreviousSampleMS = RunStartMS
 
-            # Keep taking readings until A and B are pressed together.
             while not (A.is_pressed() and B.is_pressed()):
                 i2c.write(VEML7700, bytes([0x04]), repeat=True)
                 Data = i2c.read(VEML7700, 2)
@@ -112,7 +107,6 @@ with open("data.txt", "a") as DataFile:
                 )
                 PreviousSampleMS = SampleTimeMS
 
-                # Pause between readings so the sensor can take another measurement.
                 t.sleep_ms(200)
 
             RuntimeMS = running_time() - RunStartMS
