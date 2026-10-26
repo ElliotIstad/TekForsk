@@ -46,8 +46,8 @@ class ConfigureSensor(): #konfigurer-sensor klassen. Sier seg selv
     
     def AlterGain(self): 
         global Config
-        Config = Config & ~(0b11 << 11) #okei. Denne logikken her er komplisert så jeg legger til den i en separat fil.
-        Config = Config | (self.Gain << 11) #faller under samme
+        Config = Config & ~(0b11 << 11) #okei. Denne logikken her er komplisert så jeg legger til forklaringen i en separat fil.
+        Config = Config | (self.Gain << 11) #samma her
 
     def AlterIT(self):
         global Config
@@ -79,7 +79,7 @@ except Exception as Error:
 Sensor.AlterGain() #modifiserer config bitrekken
 Sensor.AlterIT() #kan også se "de to config bytene" i stedet for bitrekken, da
 
-i2c.init() #init står for initialize. Den initierer i^2c kommunikasjonen mellom microbiten og VEML.
+i2c.init() #init står for initialize. Den initierer(starter) i^2c kommunikasjonen mellom microbiten og VEML.
 i2c.write( 
     VEML7700, #i2c.write starter med å definere hvilken kanal kommunikasjonen skal skje på. Det er her variabelet fra starten (0x10) kommer in handy
     bytes([ALS_CONF, #dette er registeret inni sensoren som konfigureres. 0x00, som definert tidligere (det er ikke jeg som har definert, det er manufactureren)
