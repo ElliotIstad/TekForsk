@@ -2,7 +2,7 @@ from microbit import *
 import time as t
 
 VEML7700 = 0x10 #slave address, altså bare hva som er addressen til SDA (serial data) kabelen som kobles mellom microbiten og sensoren
-ALS_CONF = 0x00 #konfigurasjonsaddressen til VEML hvor man endrer på gain og integration (fancy shutter speed)
+ALS_CONF = 0x00 #konfigurasjonsaddressen til VEML (ALS stands for Ambient Light Sensor) hvor man endrer på gain og integration (fancy shutter speed)
 #7 bit slave address = 0x10
 #read address = 0x04
 Config = 0b0 #brukes for å pushe konfigurasjoner gjennom 0x00(ALS_CONF)
