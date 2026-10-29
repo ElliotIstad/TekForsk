@@ -1,7 +1,7 @@
 from microbit import *
 import time as t
 
-VEML7700 = 0x10 #slave address, altså bare hva som er addressen til SDA (serial data) kabelen som kobles mellom microbiten og sensoren
+VEML6030 = 0x10 #slave address, altså bare hva som er addressen til SDA (serial data) kabelen som kobles mellom microbiten og sensoren
 ALS_CONF = 0x00 #konfigurasjonsaddressen til VEML (ALS stands for Ambient Light Sensor) hvor man endrer på gain og integration (fancy shutter speed)
 #7 bit slave address = 0x10
 #read address = 0x04
@@ -81,7 +81,7 @@ Sensor.AlterIT() #kan også se "de to config bytene" i stedet for bitrekken, da
 
 i2c.init() #init står for initialize. Den initierer(starter) i^2c kommunikasjonen mellom microbiten og VEML.
 i2c.write( 
-    VEML7700, #i2c.write starter med å definere hvilken kanal kommunikasjonen skal skje på. Det er her variabelet fra starten (0x10) kommer in handy
+    VEML6030, #i2c.write starter med å definere hvilken kanal kommunikasjonen skal skje på. Det er her variabelet fra starten (0x10) kommer in handy
     bytes([ALS_CONF, #dette er registeret inni sensoren som konfigureres. 0x00, som definert tidligere (det er ikke jeg som har definert, det er manufactureren)
         Config & 0xFF, #i2c kan kun frakte én byte (åtte bits) om gangen, så dette er de 8 første bitsene.
         (Config >> 8) & 0xFF #dette er de 8 siste bitsene
@@ -99,8 +99,8 @@ with open("data.txt", "a") as DataFile: #her åpner den 3 forskjellige filer som
             PreviousSampleMS = RunStartMS #Denne brukes til å måle tiden mellom hver måling
 
             while not (A.is_pressed() and B.is_pressed()): #tar målinger helt til A og B blir trykket samtidig. Da stopper den å logge/måle
-                i2c.write(VEML7700, bytes([0x04]), repeat=True) #her sender vi til sensoren "0x04" og ingenting mer. Følger den opp med repeat = true. Dette gjør at det neste skjer i registeret 0x04, som er datalagringsregisteret
-                Data = i2c.read(VEML7700, 2) #Her leser den og lagrer det som står i 0x04. Siden det er 16 bits nå det lagres i to bulker (to bytes. 8bits per byte vettu). [0] og [1]
+                i2c.write(VEML6030, bytes([0x04]), repeat=True) #her sender vi til sensoren "0x04" og ingenting mer. Følger den opp med repeat = true. Dette gjør at det neste skjer i registeret 0x04, som er datalagringsregisteret
+                Data = i2c.read(VEML6030, 2) #Her leser den og lagrer det som står i 0x04. Siden det er 16 bits nå det lagres i to bulker (to bytes. 8bits per byte vettu). [0] og [1]
                 RawReading = Data[0] | (Data[1] << 8) #Her merge(kombinerer) programmet de to bytesene sammen til en, så den er lesbar.
                 Lux = RawToLux(RawReading) #konverterer raw dataen til lux
                 SampleTimeMS = running_time() #Viser når denne målingen tok slutt
@@ -119,8 +119,8 @@ with open("data.txt", "a") as DataFile: #her åpner den 3 forskjellige filer som
 with open("runtime.txt", "a") as RuntimeFile:
     RuntimeFile.write(str(RuntimeMS) + "\n") #skriver total runtime
 
-Config = Config | 0b1 #her endrer den på den første biten i config. Det er power-biten ifølge konfigen til VEML7700
-i2c.write(VEML7700, bytes([ALS_CONF,
+Config = Config | 0b1 #her endrer den på den første biten i config. Det er power-biten ifølge konfigen til VEML6030
+i2c.write(VEML6030, bytes([ALS_CONF,
     Config & 0xFF,
     (Config >> 8) & 0xFF])) #nå har den gitt bit 0 verdien 1. Det betyr "power off" :( RIP 
 display.show(Image.HEART) #viser et hjerte på microbiten :) Så koselig!!!
