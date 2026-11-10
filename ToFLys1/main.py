@@ -1,7 +1,7 @@
 from microbit import *
 import time as t
 
-VEML7700 = 0x10
+VEML6030 = 0x10
 ALS_CONF = 0x00
 Config = 0b0
 
@@ -77,7 +77,7 @@ Sensor.AlterIT()
 
 i2c.init()
 i2c.write(
-    VEML7700,
+    VEML6030,
     bytes([ALS_CONF,
         Config & 0xFF,
         (Config >> 8) & 0xFF
@@ -94,8 +94,8 @@ with open("data.txt", "a") as DataFile:
             PreviousSampleMS = RunStartMS
 
             while not (A.is_pressed() and B.is_pressed()):
-                i2c.write(VEML7700, bytes([0x04]), repeat=True)
-                Data = i2c.read(VEML7700, 2)
+                i2c.write(VEML6030, bytes([0x04]), repeat=True)
+                Data = i2c.read(VEML6030, 2)
                 RawReading = Data[0] | (Data[1] << 8)
                 Lux = RawToLux(RawReading)
                 SampleTimeMS = running_time()
@@ -115,7 +115,7 @@ with open("runtime.txt", "a") as RuntimeFile:
     RuntimeFile.write(str(RuntimeMS) + "\n")
 
 Config = Config | 0b1
-i2c.write(VEML7700, bytes([ALS_CONF,
+i2c.write(VEML6030, bytes([ALS_CONF,
     Config & 0xFF,
     (Config >> 8) & 0xFF]))
 display.show(Image.HEART)
